@@ -4,10 +4,7 @@
   "description": "AES-256-GCM authenticated encryption implementation in Circom for zero-knowledge proofs",
   "type": "module",
   "main": "circuits/aesGcm/gcmEncrypt.circom",
-  "scripts": {
-    "test": "NODE_OPTIONS='--max-old-space-size=8192' vitest run",
-    "test:watch": "vitest watch"
-  },
+  "scripts": {},
   "keywords": [
     "circom",
     "aes",
@@ -24,13 +21,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yourusername/aes256-gcm-circom.git"
+    "url": "git+https://github.com/june-in-exile/aes256-gcm-circom.git"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "circom_tester": "0.0.24",
-    "typescript": "^5.8.3",
-    "vitest": "^2.1.8"
+    "typescript": "^5.8.3"
   },
   "dependencies": {
     "circomlib": "^2.0.5",

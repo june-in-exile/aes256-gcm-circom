@@ -30,35 +30,6 @@ template Mask(bits, mask) {
 }
 
 /**
- * @param bits - The bit width of the input number
- * @param offset - Number of positions to shift right
- * 
- * Example: Divide by 2^4 using right shift
- *  signal shifted <== ShiftRight(8,4)(171);  // Input: 10101011
- *  shifted === 10;                           // Result: 00001010
- */
-template ShiftRight(bits, offset) {
-    signal input in;
-    signal output out;
-
-    out <== Bits2Num(bits)(ShR(bits,offset)(Num2Bits(bits)(in)));
-}
-
-/**
- * N-bit left rotation
- * @param bits - Number of bits (64 for Keccak lanes)
- * @param positions - Number of positions to rotate left
- */
-template RotateLeft(bits, positions) {
-    signal input in;
-    signal output out;
-
-    signal (rightPart, leftPart) <== Divide()(in * 2 ** positions, 2 ** bits);
-
-    out <== leftPart + rightPart;
-}
-
-/**
  * @param n - The number of input elements
  * @param bits - The bit width of each input number
  *
@@ -151,100 +122,6 @@ template ByteAdder() {
     _ = Num2Bits(8)(a);
     _ = Num2Bits(8)(b);
     _ = Num2Bits(8)(c);
-}
-
-/**
- * Convert an array of bytes to a single 128-bit number
- *
- * @param numBytes - Number of bytes for conversion
- * @param endian - big-endian (0) or little-endian (1)
- * 
- * Example:
- * - Input: [0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
- * - Output: 2^127 (big-endian)
- * - Output: 2^7 (litte-endian)
- *
- * - Input: [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01]
- * - Output: 1 (big-endian)
- * - Output: 2^120 (litte-endian)
- */
-template BytesToNum(numBytes, endian) {
-    assert(endian == 0 || endian == 1);
-    signal input {byte} bytes[numBytes];
-    signal output num;
-
-    signal intermediateNums[numBytes];
-    
-    intermediateNums[0] <== bytes[0];
-    for (var i = 1; i < numBytes; i++) {
-        if (endian == 0) {
-            intermediateNums[i] <== intermediateNums[i - 1] * 2**8 + bytes[i];
-        } else {
-            intermediateNums[i] <== intermediateNums[i - 1] + bytes[i] * 2**(8*i);
-        }
-    }
-    num <== intermediateNums[numBytes - 1];
-}
-
-/*
- * Convert a number to an array of bytes
- *
- * @param numBytes - Number of bytes for conversion
- * @param endian - big-endian (0) or little-endian (1)
- * 
- * Example:
- * - Input: 1
- * - Output: [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01] (big-endian)
- * - Output: [0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00] (litte-endian)
- *
- * - Input: 2^127
- * - Output: [0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00] (big-endian)
- * - Output: [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80] (litte-endian)
- */
-template NumToBytes(numBytes, endian) {
-    assert(endian == 0 || endian == 1);
-    signal input num;
-    signal output {byte} bytes[numBytes];
-
-    signal intermediateNums[numBytes];
-    
-    intermediateNums[0] <== num;
-    for (var numIdx = 1; numIdx < numBytes; numIdx++) {
-        if (endian == 0) {
-            (intermediateNums[numIdx], bytes[numBytes - numIdx]) <== Divide()(intermediateNums[numIdx - 1], 2**8);
-        } else {
-            (intermediateNums[numIdx], bytes[numIdx - 1]) <== Divide()(intermediateNums[numIdx - 1], 2**8);
-        }
-    }
-    bytes[(numBytes - 1) * endian] <== intermediateNums[numBytes - 1];
-}
-
-/**
- * Convert an array of bytes to an array of hex char
- *
- * @param bytesLength - Number of bytes
- */
-template BytesToHex(bytesLength) {
-    signal input {byte} bytes[bytesLength];
-    signal output {hex} hex[bytesLength * 2];
-
-    for (var i = 0; i < bytesLength; i++) {
-        (hex[i * 2], hex[i * 2 + 1]) <== Divide()(bytes[i], 16);
-    }
-}
-
-/**
- * Convert an array of hex char to an array of bytes
- *
- * @param bytesLength - Number of bytes
- */
-template HexToBytes(bytesLength) {
-    signal input {hex} hex[bytesLength * 2];
-    signal output {byte} bytes[bytesLength];
-
-    for (var i = 0; i < bytesLength; i++) {
-        bytes[i] <== hex[i * 2] * 16 + hex[i * 2 + 1];
-    }
 }
 
 /**
